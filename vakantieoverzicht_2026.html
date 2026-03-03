@@ -122,7 +122,7 @@ const HOLIDAYS=new Set(['2026-01-01','2026-04-06','2026-05-01','2026-05-14','202
 const HOLIDAY_NAMES={'2026-01-01':'Nieuwjaar','2026-04-06':'Paasmaandag','2026-05-01':'Dag van de Arbeid','2026-05-14':'OLH Hemelvaart','2026-05-25':'Pinkstermaandag','2026-07-21':'Nationale feestdag','2026-08-15':'OLV Hemelvaart','2026-11-01':'Allerheiligen','2026-11-11':'Wapenstilstand','2026-12-25':'Kerstmis'};
 const MONTHS=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
 const DAYS=['Zo','Ma','Di','Wo','Do','Vr','Za'];
-let persons=[{name:'Persoon 1',color:PERSON_COLORS[0]},{name:'Persoon 2',color:PERSON_COLORS[1]},{name:'Persoon 3',color:PERSON_COLORS[2]},{name:'Persoon 4',color:PERSON_COLORS[3]},{name:'Persoon 5',color:PERSON_COLORS[4]},{name:'Persoon 6',color:PERSON_COLORS[5]}];
+let persons=[{name:'Marie-Jeanne',color:PERSON_COLORS[0]},{name:'Lilianne',color:PERSON_COLORS[1]},{name:'Patricia',color:PERSON_COLORS[2]},{name:'Luc',color:PERSON_COLORS[3]},{name:'Rony',color:PERSON_COLORS[4]},{name:'Kristl',color:PERSON_COLORS[5]}];
 let vacation={};for(let i=0;i<6;i++)vacation[i]={};
 let selectedPerson=0,isDragging=false,dragMode=null,editingPersonIdx=null,pendingColor=null;
 function getAllDates(){const d=[];for(let m=0;m<12;m++){const dim=new Date(2026,m+1,0).getDate();for(let day=1;day<=dim;day++)d.push(new Date(2026,m,day));}return d;}
