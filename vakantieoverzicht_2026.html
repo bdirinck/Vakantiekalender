@@ -128,8 +128,8 @@ let selectedPerson=0,isDragging=false,dragMode=null,editingPersonIdx=null,pendin
 function getAllDates(){const d=[];for(let m=0;m<12;m++){const dim=new Date(2026,m+1,0).getDate();for(let day=1;day<=dim;day++)d.push(new Date(2026,m,day));}return d;}
 function ds(d){return d.toISOString().slice(0,10);}
 function isWeekend(d) {
-  const wd = (d.getDay() + 6) % 7; // 0=Ma ... 6=Zo
-  return wd === 5 || wd === 6;     // Za of Zo
+  const w = d.getDay(); // 0=Zo, 6=Za
+  return w === 0 || w === 6;
 }
 function isHoliday(d){return HOLIDAYS.has(ds(d));}
 function buildCalendar(){
@@ -182,7 +182,7 @@ function saveModal(){if(editingPersonIdx===null)return;const n=document.getEleme
 function clearAll(){if(!confirm('Alle vakantiedagen wissen?'))return;for(let p=0;p<persons.length;p++)vacation[p]={};buildCalendar();updateStatus();}
 function saveState(){try{localStorage.setItem('vakantie2026',JSON.stringify({persons,vacation}));const btn=event.target;btn.textContent='Opgeslagen!';setTimeout(()=>btn.textContent='Opslaan',1500);}catch(e){alert('Opslaan mislukt (localStorage niet beschikbaar).');}}
 function loadState(){try{const raw=localStorage.getItem('vakantie2026');if(!raw)return;const s=JSON.parse(raw);if(s.persons)persons=s.persons;if(s.vacation){vacation={};for(let p=0;p<persons.length;p++)vacation[p]=s.vacation[p]||{};}}catch(e){}}
-function exportCSV(){const dates=getAllDates().filter(d=>!isWeekend(d)&&!isHoliday(d));let csv='Naam,'+dates.map(d=>ds(d)).join(',')+'\n';for(let p=0;p<persons.length;p++){csv+=persons[p].name+','+dates.map(d=>vacation[p][ds(d)]?'V':'').join(',')+'\n';}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='vakantieoverzicht_2026.csv';a.click();}
+function exportCSV(){const dates = getAllDates().filter(d => !isWeekend(d) && !isHoliday(d));let csv='Naam,'+dates.map(d=>ds(d)).join(',')+'\n';for(let p=0;p<persons.length;p++){csv+=persons[p].name+','+dates.map(d=>vacation[p][ds(d)]?'V':'').join(',')+'\n';}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='vakantieoverzicht_2026.csv';a.click();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveState();}const n=parseInt(e.key);if(n>=1&&n<=6)selectPerson(n-1);});
 loadState();buildPersonsBar();buildCalendar();updateStatus();selectPerson(0);
 </script>
