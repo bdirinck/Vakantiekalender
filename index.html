@@ -364,7 +364,11 @@
     const err = document.getElementById('pwError');
     if (input.value === CORRECT_PASSWORD) {
       closeModal();
-      window.location.href = targetUrl;
+      const a = document.createElement('a');
+      a.href = targetUrl;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     } else {
       input.classList.add('error');
       err.classList.add('visible');
