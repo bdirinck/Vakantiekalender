@@ -282,7 +282,7 @@
   <div class="sub">Selecteer een overzicht</div>
 
   <nav class="nav">
-    <div class="nav-btn" style="--btn-accent:#4f6ef7" onclick="askPassword('Vakantieoverzicht_2026.html')">
+    <a href="Vakantieoverzicht_2026.html" class="nav-btn" style="--btn-accent:#4f6ef7" onclick="return checkPw()">
       <div class="btn-label">
         <span class="btn-dot"></span>
         <div class="nav-btn-inner">
@@ -291,9 +291,9 @@
         </div>
       </div>
       <span class="btn-arrow">&#8594;</span>
-    </div>
+    </a>
 
-    <div class="nav-btn" style="--btn-accent:#8b5cf6" onclick="askPassword('Vakantieoverzicht_2027.html')">
+    <a href="Vakantieoverzicht_2027.html" class="nav-btn" style="--btn-accent:#8b5cf6" onclick="return checkPw()">
       <div class="btn-label">
         <span class="btn-dot"></span>
         <div class="nav-btn-inner">
@@ -302,7 +302,7 @@
         </div>
       </div>
       <span class="btn-arrow">&#8594;</span>
-    </div>
+    </a>
 
     <div class="divider"></div>
 
@@ -321,71 +321,13 @@
   <div class="footer">Ctrl+S om op te slaan &bull; ESC om af te melden</div>
 </div>
 
-<!-- Password modal -->
-<div class="modal-overlay" id="pwModal">
-  <div class="modal">
-    <h2>Toegang vereist</h2>
-    <div class="modal-sub">Vakantieoverzicht</div>
-    <div class="modal-field">
-      <label>Paswoord</label>
-      <input type="password" id="pwInput" placeholder="••••••••" autocomplete="off" onkeydown="handleKey(event)">
-      <div class="error-msg" id="pwError">Ongeldig paswoord</div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-modal" onclick="closeModal()">Annuleren</button>
-      <button class="btn-modal confirm" onclick="checkPassword()">Bevestigen</button>
-    </div>
-  </div>
-</div>
-
 <script>
-  const CORRECT_PASSWORD = 'papa1928';
-  let targetUrl = '';
-
-  function askPassword(url) {
-    targetUrl = url;
-    const modal = document.getElementById('pwModal');
-    const input = document.getElementById('pwInput');
-    const err = document.getElementById('pwError');
-    input.value = '';
-    input.classList.remove('error');
-    err.classList.remove('visible');
-    modal.classList.add('open');
-    setTimeout(() => input.focus(), 80);
-  }
-
-  function closeModal() {
-    document.getElementById('pwModal').classList.remove('open');
-    targetUrl = '';
-  }
-
-  function checkPassword() {
-    const input = document.getElementById('pwInput');
-    const err = document.getElementById('pwError');
-    if (input.value === CORRECT_PASSWORD) {
-      closeModal();
-      const a = document.createElement('a');
-      a.href = targetUrl;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
-      input.classList.add('error');
-      err.classList.add('visible');
-      input.value = '';
-      input.focus();
-    }
-  }
-
-  function handleKey(e) {
-    if (e.key === 'Enter') checkPassword();
-    if (e.key === 'Escape') closeModal();
-    const input = document.getElementById('pwInput');
-    const err = document.getElementById('pwError');
-    if (input.classList.contains('error')) {
-      input.classList.remove('error');
-      err.classList.remove('visible');
-    }
+  function checkPw() {
+    const pw = prompt('Paswoord:');
+    if (pw === null) return false;
+    if (pw === 'papa1928') return true;
+    alert('Ongeldig paswoord.');
+    return false;
   }
 </script>
 </body>
