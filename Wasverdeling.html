@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Wasverdeling familie Caels 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13; --surface: #17171e; --surface2: #1e1e28;
+    --border: #2a2a38; --text: #e8e8f0; --text-muted: #6b6b80;
+    --accent: #4f6ef7; --accent2: #8b5cf6;
+    --vacation: #ff4466; --vacation-bg: #2d0011;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; padding: 20px 16px; }
+  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .title-block h1 { font-family: 'Syne', sans-serif; font-size: clamp(22px,5vw,52px); font-weight: 800; letter-spacing: -1px; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .title-block .sub { font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'DM Mono', monospace; font-size: 11px; padding: 8px 14px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; touch-action: manipulation; }
+  .btn:hover { background: var(--border); border-color: var(--accent); }
+  .btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-danger { border-color: var(--vacation); color: var(--vacation); }
+  .btn-danger:hover { background: var(--vacation-bg); }
+
+  .active-banner { display: none; align-items: center; gap: 10px; padding: 10px 16px; margin-bottom: 20px; border: 2px solid; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+  .active-banner.visible { display: flex; }
+  .active-banner .banner-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .active-banner .banner-deselect { margin-left: auto; cursor: pointer; font-size: 10px; opacity: 0.7; padding: 4px 8px; border: 1px solid currentColor; touch-action: manipulation; }
+  .active-banner .banner-deselect:hover { opacity: 1; }
+
+  .grid-wrapper { border: 1px solid var(--border); background: var(--surface); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: collapse; width: 100%; }
+
+  /* Header row: months */
+  thead th { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 12px 6px; text-align: center; background: var(--surface2); border-right: 1px solid var(--border); border-bottom: 2px solid var(--border); color: var(--text-muted); position: sticky; top: 0; z-index: 10; }
+  thead th.name-col { width: 130px; min-width: 130px; text-align: left; padding-left: 14px; background: var(--bg); border-right: 2px solid var(--border); font-size: 10px; letter-spacing: 3px; left: 0; z-index: 20; }
+
+  /* Person rows */
+  tbody tr td { height: 52px; text-align: center; vertical-align: middle; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); cursor: default; transition: background 0.08s; user-select: none; }
+  tbody tr td.name-cell { font-size: 11px; font-weight: 500; padding: 0 12px; text-align: left; border-right: 2px solid var(--border); white-space: nowrap; position: sticky; left: 0; z-index: 5; background: var(--surface); min-width: 130px; width: 130px; cursor: pointer; touch-action: manipulation; }
+  tbody tr td.name-cell:hover { background: var(--surface2); }
+  tbody tr td.name-cell.is-active { cursor: default; }
+  tbody tr td.name-cell.is-active:hover { background: var(--surface); }
+
+  /* Month cell states */
+  tbody tr td.month-cell { min-width: 72px; }
+  tbody tr td.month-cell.is-editable { cursor: pointer; }
+  tbody tr td.month-cell.is-editable:hover { background: rgba(79,110,247,0.12); }
+  tbody tr.is-locked { opacity: 0.35; }
+  tbody tr td.month-cell.is-selected {
+    background: var(--person-vacation-bg, rgba(255,68,102,0.12)) !important;
+    cursor: pointer;
+  }
+  tbody tr td.month-cell.is-selected::after {
+    content: '';
+    display: block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--person-color, var(--vacation));
+    margin: 0 auto;
+    box-shadow: 0 0 8px var(--person-color, var(--vacation));
+  }
+
+  .name-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; }
+
+  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: var(--bg); border: 1px solid var(--border); border-top: none; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; flex-wrap: wrap; gap: 8px; }
+  .month-counts { display: flex; gap: 14px; flex-wrap: wrap; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); padding: 28px; max-width: 400px; width: 100%; }
+  .modal h2 { font-family: 'Syne', sans-serif; font-size: 20px; margin-bottom: 20px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-field label { display: block; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .modal-field input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; padding: 10px 12px; outline: none; }
+  .modal-field input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+  .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch { width: 32px; height: 32px; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s; touch-action: manipulation; }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.selected { border-color: #fff; }
+
+  @media (max-width: 600px) {
+    body { padding: 10px 8px; }
+    .btn { font-size: 10px; padding: 7px 10px; }
+    thead th.name-col, tbody tr td.name-cell { min-width: 90px; width: 90px; font-size: 10px; padding: 0 6px; padding-left: 8px; }
+    tbody tr td.month-cell { min-width: 52px; }
+    thead th { font-size: 10px; padding: 10px 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title-block">
+    <h1>Wasverdeling 2026</h1>
+    <div class="sub">Familie Caels &bull; 4 personen &bull; 12 maanden</div>
+  </div>
+  <div class="controls">
+    <button class="btn btn-danger" onclick="clearAll()">Alles wissen</button>
+    <button class="btn active" onclick="saveState()">Opslaan</button>
+  </div>
+</div>
+
+<div class="active-banner" id="activeBanner">
+  <span class="banner-dot" id="bannerDot"></span>
+  <span id="bannerName"></span>
+  <span class="banner-deselect" onclick="deselectPerson()">&#x2715; Afmelden</span>
+</div>
+
+<div class="grid-wrapper">
+  <table id="gridTable"></table>
+</div>
+<div class="status-bar">
+  <div id="statusText">Klik op je naam om maanden aan te duiden.</div>
+  <div class="month-counts" id="monthCounts"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>Persoon aanpassen</h2>
+    <div class="modal-field"><label>Naam</label><input type="text" id="modalName" maxlength="24"></div>
+    <div class="modal-field"><label>Kleur</label><div class="color-swatches" id="colorSwatches"></div></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="closeModal()">Annuleren</button>
+      <button class="btn active" onclick="saveModal()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PERSON_COLORS=['#4f6ef7','#10b981','#f97316','#84cc16','#ec4899','#8b5cf6','#06b6d4','#f59e0b','#e11d48','#0ea5e9'];
+const MONTHS=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+
+let persons=[
+  {name:'Marie-Jeanne', color:PERSON_COLORS[0]},
+  {name:'Lilianne',     color:PERSON_COLORS[1]},
+  {name:'Patricia',     color:PERSON_COLORS[2]},
+  {name:'Kristl',       color:PERSON_COLORS[3]}
+];
+let selected={}; // selected[p][m] = true/false
+for(let p=0;p<4;p++){selected[p]={};}
+let selectedPerson=null;
+let editingPersonIdx=null, pendingColor=null;
+
+function buildGrid(){
+  const table=document.getElementById('gridTable');
+  table.innerHTML='';
+
+  // Header
+  const thead=document.createElement('thead');
+  const hrow=document.createElement('tr');
+  const nameTh=document.createElement('th');
+  nameTh.className='name-col';nameTh.textContent='NAAM';
+  hrow.appendChild(nameTh);
+  for(let m=0;m<12;m++){
+    const th=document.createElement('th');
+    th.textContent=MONTHS[m].substring(0,3).toUpperCase();
+    th.title=MONTHS[m];
+    hrow.appendChild(th);
+  }
+  thead.appendChild(hrow);
+  table.appendChild(thead);
+
+  // Body
+  const tbody=document.createElement('tbody');
+  for(let p=0;p<persons.length;p++){
+    const tr=document.createElement('tr');
+    const col=persons[p].color;
+    tr.style.setProperty('--person-color',col);
+    tr.style.setProperty('--person-vacation-bg',col+'22');
+    const isActive=selectedPerson===p;
+    const isLocked=selectedPerson!==null&&!isActive;
+    if(isLocked)tr.classList.add('is-locked');
+
+    // Name cell
+    const nc=document.createElement('td');
+    nc.className='name-cell'+(isActive?' is-active':'');
+    nc.style.color=isActive?col:'';
+    nc.style.borderLeft='3px solid '+(isActive?col:'transparent');
+    if(isActive){
+      nc.innerHTML='<span class="name-dot" style="background:'+col+'"></span>'+persons[p].name
+        +'<span style="color:var(--text-muted);font-size:10px;cursor:pointer;margin-left:6px;float:right" title="Bewerken" id="editBtn'+p+'">&#x270E;</span>';
+      nc.querySelector('#editBtn'+p).addEventListener('click',e=>{e.stopPropagation();openModal(p);});
+      nc.querySelector('#editBtn'+p).addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();openModal(p);});
+    } else {
+      nc.innerHTML='<span class="name-dot" style="background:'+col+'"></span>'+persons[p].name;
+      nc.title='Klik om als '+persons[p].name+' in te loggen';
+      nc.addEventListener('click',()=>selectPerson(p));
+      nc.addEventListener('touchend',e=>{e.preventDefault();selectPerson(p);});
+    }
+    tr.appendChild(nc);
+
+    // Month cells
+    for(let m=0;m<12;m++){
+      const td=document.createElement('td');
+      td.className='month-cell';
+      td.dataset.p=p;td.dataset.m=m;
+      if(selected[p][m])td.classList.add('is-selected');
+      if(isActive){
+        td.classList.add('is-editable');
+        td.addEventListener('click',()=>toggleMonth(p,m,td));
+        td.addEventListener('touchend',e=>{e.preventDefault();toggleMonth(p,m,td);});
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+}
+
+function toggleMonth(p,m,td){
+  if(selected[p][m]){delete selected[p][m];td.classList.remove('is-selected');}
+  else{selected[p][m]=true;td.classList.add('is-selected');}
+  updateStatus();
+}
+
+function selectPerson(idx){
+  selectedPerson=idx;
+  buildGrid();updateStatus();
+  const banner=document.getElementById('activeBanner');
+  banner.classList.add('visible');
+  banner.style.borderColor=persons[idx].color;
+  banner.style.color=persons[idx].color;
+  document.getElementById('bannerDot').style.background=persons[idx].color;
+  document.getElementById('bannerName').textContent=persons[idx].name+' — klik op een maand om aan te duiden';
+  document.getElementById('statusText').textContent='Actief: '+persons[idx].name+'. Klik op een maand om aan te duiden.';
+}
+
+function deselectPerson(){
+  selectedPerson=null;
+  buildGrid();updateStatus();
+  document.getElementById('activeBanner').classList.remove('visible');
+  document.getElementById('statusText').textContent='Klik op je naam om maanden aan te duiden.';
+}
+
+function updateStatus(){
+  const c=document.getElementById('monthCounts');c.innerHTML='';
+  for(let p=0;p<persons.length;p++){
+    const count=Object.keys(selected[p]).length;
+    const div=document.createElement('div');div.className='count-item';
+    div.style.display='flex';div.style.alignItems='center';div.style.gap='6px';
+    div.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+persons[p].color+';margin-right:2px"></span>'
+      +'<span style="color:'+persons[p].color+'">'+persons[p].name+'</span>: '+count+'m';
+    c.appendChild(div);
+  }
+}
+
+function openModal(idx){
+  editingPersonIdx=idx;pendingColor=persons[idx].color;
+  document.getElementById('modalName').value=persons[idx].name;
+  const sw=document.getElementById('colorSwatches');sw.innerHTML='';
+  PERSON_COLORS.forEach(c=>{
+    const s=document.createElement('div');s.className='swatch'+(c===pendingColor?' selected':'');
+    s.style.background=c;
+    s.onclick=()=>{pendingColor=c;document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected'));s.classList.add('selected');};
+    sw.appendChild(s);
+  });
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('modalName').focus(),50);
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');editingPersonIdx=null;}
+function saveModal(){
+  if(editingPersonIdx===null)return;
+  const n=document.getElementById('modalName').value.trim()||persons[editingPersonIdx].name;
+  persons[editingPersonIdx].name=n;persons[editingPersonIdx].color=pendingColor;
+  closeModal();buildGrid();updateStatus();
+  if(selectedPerson===editingPersonIdx)selectPerson(editingPersonIdx);
+}
+function clearAll(){
+  if(!confirm('Alle selecties wissen?'))return;
+  for(let p=0;p<persons.length;p++)selected[p]={};
+  buildGrid();updateStatus();
+}
+function saveState(){
+  try{
+    localStorage.setItem('wasverdeling2026',JSON.stringify({persons,selected}));
+    const btn=event.target;btn.textContent='Opgeslagen!';
+    setTimeout(()=>btn.textContent='Opslaan',1500);
+  }catch(e){alert('Opslaan mislukt.');}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem('wasverdeling2026');if(!raw)return;
+    const s=JSON.parse(raw);
+    if(s.persons)persons=s.persons;
+    if(s.selected){selected={};for(let p=0;p<persons.length;p++)selected[p]=s.selected[p]||{};}
+  }catch(e){}
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('modalOverlay').classList.contains('open'))closeModal();
+    else deselectPerson();
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveState();}
+});
+loadState();buildGrid();updateStatus();
+</script>
+</body>
+</html>
