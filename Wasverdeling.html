@@ -100,7 +100,7 @@
   <div class="controls">
     <a href="index.html" class="btn" style="text-decoration:none">&#8592; Home</a>
     <button class="btn btn-danger" onclick="clearAll()">Alles wissen</button>
-    <button class="btn active" onclick="saveState()">Opslaan</button>
+    <button class="btn active" onclick="saveState(this)">Opslaan</button>
   </div>
 </div>
 
@@ -274,29 +274,59 @@ function clearAll(){
   for(let p=0;p<persons.length;p++)selected[p]={};
   buildGrid();updateStatus();
 }
-function saveState(){
-  try{
-    localStorage.setItem('wasverdeling2026',JSON.stringify({persons,selected}));
-    const btn=event.target;btn.textContent='Opgeslagen!';
-    setTimeout(()=>btn.textContent='Opslaan',1500);
-  }catch(e){alert('Opslaan mislukt.');}
+const FB_URL = 'https://familie-caels-default-rtdb.europe-west1.firebasedatabase.app/wasverdeling2026.json';
+
+async function saveState(btn){
+  btn = btn || document.querySelector('.btn.active');
+  const orig = btn.textContent;
+  btn.textContent = 'Opslaan...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(FB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({persons, selected})
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    btn.textContent = 'Opgeslagen!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+  } catch(e) {
+    btn.textContent = 'Fout!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+    alert('Opslaan mislukt: ' + e.message);
+  }
 }
-function loadState(){
-  try{
-    const raw=localStorage.getItem('wasverdeling2026');if(!raw)return;
-    const s=JSON.parse(raw);
-    if(s.persons)persons=s.persons;
-    if(s.selected){selected={};for(let p=0;p<persons.length;p++)selected[p]=s.selected[p]||{};}
-  }catch(e){}
+
+async function loadState(){
+  try {
+    document.getElementById('statusText').textContent = 'Gegevens laden...';
+    const res = await fetch(FB_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const s = await res.json();
+    if (s && s.persons) persons = s.persons;
+    if (s && s.selected) {
+      selected = {};
+      for (let p = 0; p < persons.length; p++) selected[p] = s.selected[p] || {};
+    }
+  } catch(e) {
+    console.warn('Laden mislukt, standaarddata gebruikt.', e);
+  }
+  buildGrid();
+  updateStatus();
+  document.getElementById('statusText').textContent = 'Klik op je naam om maanden aan te duiden.';
 }
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-    if(document.getElementById('modalOverlay').classList.contains('open'))closeModal();
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('modalOverlay').classList.contains('open')) closeModal();
     else deselectPerson();
   }
-  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveState();}
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveState(document.querySelector('.btn.active'));
+  }
 });
-loadState();buildGrid();updateStatus();
+loadState();
 </script>
 </body>
 </html>

@@ -91,7 +91,7 @@
     <a href="index.html" class="btn" style="text-decoration:none">&#8592; Home</a>
     <button class="btn btn-danger" onclick="clearAll()">Alles wissen</button>
     <button class="btn" onclick="exportCSV()">Exporteer CSV</button>
-    <button class="btn active" onclick="saveState()">Opslaan</button>
+    <button class="btn active" onclick="saveState(this)">Opslaan</button>
   </div>
 </div>
 <div class="legend">
@@ -195,7 +195,7 @@ function buildCalendar(){
     }
     tr.appendChild(nc);
 
-    // D cells
+    // Day cells
     for(const d of dates){
       const td=document.createElement('td');const dstr=ds(d);
       td.dataset.dstr=dstr;td.dataset.p=p;
@@ -284,26 +284,54 @@ function saveModal(){
   closeModal();buildCalendar();updateStatus();
   if(selectedPerson===editingPersonIdx)selectPerson(editingPersonIdx);
 }
+const FB_URL = 'https://familie-caels-default-rtdb.europe-west1.firebasedatabase.app/vakantie2026.json';
+
 function clearAll(){
   if(!confirm('Alle vakantiedagen wissen?'))return;
   for(let p=0;p<persons.length;p++)vacation[p]={};
   buildCalendar();updateStatus();
 }
-function saveState(){
-  try{
-    localStorage.setItem('vakantie2026',JSON.stringify({persons,vacation}));
-    const btn=event.target;btn.textContent='Opgeslagen!';
-    setTimeout(()=>btn.textContent='Opslaan',1500);
-  }catch(e){alert('Opslaan mislukt.');}
+
+async function saveState(btn){
+  btn = btn || document.querySelector('.btn.active');
+  const orig = btn.textContent;
+  btn.textContent = 'Opslaan...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(FB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({persons, vacation})
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    btn.textContent = 'Opgeslagen!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+  } catch(e) {
+    btn.textContent = 'Fout!';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+    alert('Opslaan mislukt: ' + e.message);
+  }
 }
-function loadState(){
-  try{
-    const raw=localStorage.getItem('vakantie2026');if(!raw)return;
-    const s=JSON.parse(raw);
-    if(s.persons)persons=s.persons;
-    if(s.vacation){vacation={};for(let p=0;p<persons.length;p++)vacation[p]=s.vacation[p]||{};}
-  }catch(e){}
+
+async function loadState(){
+  try {
+    document.getElementById('statusText').textContent = 'Gegevens laden...';
+    const res = await fetch(FB_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const s = await res.json();
+    if (s && s.persons) persons = s.persons;
+    if (s && s.vacation) {
+      vacation = {};
+      for (let p = 0; p < persons.length; p++) vacation[p] = s.vacation[p] || {};
+    }
+  } catch(e) {
+    console.warn('Laden mislukt, standaarddata gebruikt.', e);
+  }
+  buildCalendar();
+  updateStatus();
+  document.getElementById('statusText').textContent = 'Klik op je naam in de kalender om vakantiedagen in te vullen.';
 }
+
 function exportCSV(){
   const dates=getAllDates().filter(d=>!isWeekend(d)&&!isHoliday(d));
   let csv='Naam,'+dates.map(d=>ds(d)).join(',')+'\n';
@@ -311,14 +339,18 @@ function exportCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='vakantieoverzicht_2026.csv';a.click();
 }
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-    if(document.getElementById('modalOverlay').classList.contains('open'))closeModal();
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('modalOverlay').classList.contains('open')) closeModal();
     else deselectPerson();
   }
-  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveState();}
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveState(document.querySelector('.btn.active'));
+  }
 });
-loadState();buildCalendar();updateStatus();
+loadState();
 </script>
 </body>
 </html>
