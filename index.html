@@ -9,8 +9,8 @@
   :root {
     --bg: #0f0f13; --surface: #17171e; --surface2: #1e1e28;
     --border: #2a2a38; --text: #e8e8f0; --text-muted: #6b6b80;
-    --accent: #4f6ef7; --accent2: #8b5cf6;
-    --error: #ff4466;
+    --accent: #4f6ef7; --accent2: #8b5cf6; --error: #ff4466;
+    --green: #10b981;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
@@ -24,7 +24,6 @@
     justify-content: center;
     padding: 32px 20px;
   }
-
   body::before {
     content: '';
     position: fixed;
@@ -37,7 +36,6 @@
     pointer-events: none;
     z-index: 0;
   }
-
   .container {
     position: relative;
     z-index: 1;
@@ -45,7 +43,6 @@
     max-width: 560px;
     text-align: center;
   }
-
   .eyebrow {
     font-size: 10px;
     letter-spacing: 4px;
@@ -54,7 +51,6 @@
     margin-bottom: 14px;
     animation: fadeUp 0.5s ease both;
   }
-
   h1 {
     font-family: 'Syne', sans-serif;
     font-size: clamp(40px, 10vw, 72px);
@@ -68,7 +64,6 @@
     margin-bottom: 10px;
     animation: fadeUp 0.5s 0.08s ease both;
   }
-
   .sub {
     font-size: 11px;
     color: var(--text-muted);
@@ -77,15 +72,12 @@
     margin-bottom: 52px;
     animation: fadeUp 0.5s 0.14s ease both;
   }
-
   .nav {
     display: flex;
     flex-direction: column;
     gap: 12px;
     width: 100%;
-    animation: fadeUp 0.5s 0.22s ease both;
   }
-
   .nav-btn {
     display: flex;
     align-items: center;
@@ -105,7 +97,6 @@
     position: relative;
     overflow: hidden;
   }
-
   .nav-btn::before {
     content: '';
     position: absolute;
@@ -116,17 +107,8 @@
     transform-origin: bottom;
     transition: transform 0.2s ease;
   }
-
-  .nav-btn:hover {
-    background: var(--surface2);
-    border-color: var(--btn-accent, var(--accent));
-    transform: translateX(4px);
-  }
-
-  .nav-btn:hover::before {
-    transform: scaleY(1);
-  }
-
+  .nav-btn:hover { background: var(--surface2); border-color: var(--btn-accent, var(--accent)); transform: translateX(4px); }
+  .nav-btn:hover::before { transform: scaleY(1); }
   .nav-btn .btn-label { display: flex; align-items: center; gap: 12px; }
   .nav-btn .btn-dot {
     width: 8px; height: 8px; border-radius: 50%;
@@ -134,33 +116,11 @@
     box-shadow: 0 0 8px var(--btn-accent, var(--accent));
     flex-shrink: 0;
   }
-  .nav-btn .btn-arrow {
-    font-size: 16px;
-    color: var(--text-muted);
-    transition: color 0.15s, transform 0.15s;
-  }
-  .nav-btn:hover .btn-arrow {
-    color: var(--btn-accent, var(--accent));
-    transform: translateX(4px);
-  }
-  .nav-btn .btn-year {
-    font-size: 9px;
-    color: var(--text-muted);
-    letter-spacing: 2px;
-    margin-top: 3px;
-    display: block;
-  }
-
+  .nav-btn .btn-arrow { font-size: 16px; color: var(--text-muted); transition: color 0.15s, transform 0.15s; }
+  .nav-btn:hover .btn-arrow { color: var(--btn-accent, var(--accent)); transform: translateX(4px); }
+  .nav-btn .btn-year { font-size: 9px; color: var(--text-muted); letter-spacing: 2px; margin-top: 3px; display: block; }
   .nav-btn-inner { text-align: left; }
-
-  .divider {
-    width: 100%;
-    height: 1px;
-    background: var(--border);
-    margin: 8px 0;
-    opacity: 0.5;
-  }
-
+  .divider { width: 100%; height: 1px; background: var(--border); margin: 8px 0; opacity: 0.5; }
   .footer {
     margin-top: 48px;
     font-size: 9px;
@@ -169,109 +129,116 @@
     text-transform: uppercase;
     animation: fadeUp 0.5s 0.32s ease both;
   }
-
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @media (max-width: 480px) { .nav-btn { padding: 16px 18px; font-size: 11px; } }
 
-  @media (max-width: 480px) {
-    .nav-btn { padding: 16px 18px; font-size: 11px; }
+  /* Locked state */
+  .nav-btn.locked {
+    opacity: 0.38;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
+  /* Login block */
+  .login-block {
+    width: 100%;
     background: var(--surface);
     border: 1px solid var(--border);
-    padding: 28px;
-    max-width: 360px;
-    width: 100%;
+    padding: 20px 24px;
+    margin-bottom: 0;
   }
-  .modal h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 18px;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
-  }
-  .modal .modal-sub {
+  .login-block.hidden { display: none; }
+  .login-label {
     font-size: 10px;
-    color: var(--text-muted);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-  }
-  .modal-field { margin-bottom: 16px; }
-  .modal-field label {
-    display: block;
-    font-size: 10px;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     text-transform: uppercase;
     color: var(--text-muted);
-    margin-bottom: 6px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .modal-field input {
-    width: 100%;
+  .login-label::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .login-row { display: flex; gap: 8px; }
+  .login-input {
+    flex: 1;
     background: var(--bg);
     border: 1px solid var(--border);
     color: var(--text);
     font-family: 'DM Mono', monospace;
-    font-size: 14px;
-    padding: 10px 12px;
+    font-size: 13px;
+    padding: 10px 14px;
     outline: none;
     letter-spacing: 2px;
+    transition: border-color 0.15s;
   }
-  .modal-field input:focus { border-color: var(--accent); }
-  .modal-field input.error { border-color: var(--error); }
-  .error-msg {
+  .login-input:focus { border-color: var(--accent); }
+  .login-input.shake { animation: shake 0.35s ease; border-color: var(--error); }
+  .login-btn {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 10px 18px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .login-btn:hover { opacity: 0.85; }
+  .login-error {
     font-size: 10px;
     color: var(--error);
     letter-spacing: 1px;
     text-transform: uppercase;
-    margin-top: 6px;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .login-error.visible { opacity: 1; }
+
+  /* Unlocked badge */
+  .unlocked-badge {
     display: none;
-  }
-  .error-msg.visible { display: block; }
-  .modal-actions {
-    display: flex;
+    align-items: center;
     gap: 10px;
-    margin-top: 24px;
-    justify-content: flex-end;
-  }
-  .btn-modal {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 9px 16px;
-    cursor: pointer;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: all 0.15s;
-  }
-  .btn-modal:hover { background: var(--border); }
-  .btn-modal.confirm {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-  .btn-modal.confirm:hover { opacity: 0.85; }
-  .lock-icon {
+    padding: 10px 16px;
+    border: 1px solid var(--green);
+    color: var(--green);
     font-size: 10px;
-    color: var(--text-muted);
-    margin-left: 6px;
-    vertical-align: middle;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .unlocked-badge.visible { display: flex; animation: fadeUp 0.3s ease both; }
+  .unlocked-badge::before {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    flex-shrink: 0;
+  }
+  .lock-icon { font-size: 11px; color: var(--text-muted); margin-left: 4px; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
   }
 </style>
 </head>
@@ -281,54 +248,93 @@
   <h1>Planning</h1>
   <div class="sub">Selecteer een overzicht</div>
 
-  <nav class="nav">
-    <a href="Vakantieoverzicht_2026.html" class="nav-btn" style="--btn-accent:#4f6ef7" onclick="return checkPw()">
-      <div class="btn-label">
-        <span class="btn-dot"></span>
-        <div class="nav-btn-inner">
-          Vakantieoverzicht <span class="lock-icon">&#128274;</span>
-          <span class="btn-year">2026</span>
-        </div>
-      </div>
-      <span class="btn-arrow">&#8594;</span>
-    </a>
+  <div style="display:flex;flex-direction:column;gap:12px;width:100%;animation:fadeUp 0.5s 0.22s ease both;">
 
-    <a href="Vakantieoverzicht_2027.html" class="nav-btn" style="--btn-accent:#8b5cf6" onclick="return checkPw()">
-      <div class="btn-label">
-        <span class="btn-dot"></span>
-        <div class="nav-btn-inner">
-          Vakantieoverzicht <span class="lock-icon">&#128274;</span>
-          <span class="btn-year">2027</span>
-        </div>
+    <!-- Login block -->
+    <div class="login-block" id="loginBlock">
+      <div class="login-label">Vakantieoverzichten &bull; Toegang vereist</div>
+      <div class="login-row">
+        <input type="password" class="login-input" id="pwInput" placeholder="Paswoord" autocomplete="off" maxlength="32">
+        <button class="login-btn" onclick="doLogin()">Bevestigen</button>
       </div>
-      <span class="btn-arrow">&#8594;</span>
-    </a>
+      <div class="login-error" id="loginError">Ongeldig paswoord</div>
+    </div>
 
-    <div class="divider"></div>
+    <!-- Unlocked badge -->
+    <div class="unlocked-badge" id="unlockedBadge">
+      Vakantieoverzichten ontgrendeld
+    </div>
 
-    <a href="Wasverdeling.html" class="nav-btn" style="--btn-accent:#10b981">
-      <div class="btn-label">
-        <span class="btn-dot"></span>
-        <div class="nav-btn-inner">
-          Wasverdeling
-          <span class="btn-year">2026</span>
+    <!-- Nav -->
+    <nav class="nav">
+      <a href="Vakantieoverzicht_2026.html" class="nav-btn locked" id="btn2026" style="--btn-accent:#4f6ef7">
+        <div class="btn-label">
+          <span class="btn-dot"></span>
+          <div class="nav-btn-inner">
+            Vakantieoverzicht <span class="lock-icon" id="lock2026">&#128274;</span>
+            <span class="btn-year">2026</span>
+          </div>
         </div>
-      </div>
-      <span class="btn-arrow">&#8594;</span>
-    </a>
-  </nav>
+        <span class="btn-arrow">&#8594;</span>
+      </a>
+
+      <a href="Vakantieoverzicht_2027.html" class="nav-btn locked" id="btn2027" style="--btn-accent:#8b5cf6">
+        <div class="btn-label">
+          <span class="btn-dot"></span>
+          <div class="nav-btn-inner">
+            Vakantieoverzicht <span class="lock-icon" id="lock2027">&#128274;</span>
+            <span class="btn-year">2027</span>
+          </div>
+        </div>
+        <span class="btn-arrow">&#8594;</span>
+      </a>
+
+      <div class="divider"></div>
+
+      <a href="Wasverdeling.html" class="nav-btn" style="--btn-accent:#10b981">
+        <div class="btn-label">
+          <span class="btn-dot"></span>
+          <div class="nav-btn-inner">
+            Wasverdeling
+            <span class="btn-year">2026</span>
+          </div>
+        </div>
+        <span class="btn-arrow">&#8594;</span>
+      </a>
+    </nav>
+
+  </div>
 
   <div class="footer">Ctrl+S om op te slaan &bull; ESC om af te melden</div>
 </div>
 
 <script>
-  function checkPw() {
-    const pw = prompt('Paswoord:');
-    if (pw === null) return false;
-    if (pw === 'papa1928') return true;
-    alert('Ongeldig paswoord.');
-    return false;
+  const PW = 'papa1928';
+
+  function doLogin() {
+    const input = document.getElementById('pwInput');
+    const err = document.getElementById('loginError');
+    if (input.value === PW) {
+      document.getElementById('loginBlock').classList.add('hidden');
+      document.getElementById('unlockedBadge').classList.add('visible');
+      document.getElementById('btn2026').classList.remove('locked');
+      document.getElementById('btn2027').classList.remove('locked');
+      document.getElementById('lock2026').remove();
+      document.getElementById('lock2027').remove();
+    } else {
+      input.classList.remove('shake');
+      void input.offsetWidth;
+      input.classList.add('shake');
+      err.classList.add('visible');
+      input.value = '';
+      setTimeout(() => input.classList.remove('shake'), 400);
+    }
   }
+
+  document.getElementById('pwInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+    document.getElementById('loginError').classList.remove('visible');
+  });
 </script>
 </body>
 </html>
