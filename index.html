@@ -10,6 +10,7 @@
     --bg: #0f0f13; --surface: #17171e; --surface2: #1e1e28;
     --border: #2a2a38; --text: #e8e8f0; --text-muted: #6b6b80;
     --accent: #4f6ef7; --accent2: #8b5cf6;
+    --error: #ff4466;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
@@ -24,7 +25,6 @@
     padding: 32px 20px;
   }
 
-  /* Subtle grid background */
   body::before {
     content: '';
     position: fixed;
@@ -178,6 +178,101 @@
   @media (max-width: 480px) {
     .nav-btn { padding: 16px 18px; font-size: 11px; }
   }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    max-width: 360px;
+    width: 100%;
+  }
+  .modal h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .modal .modal-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .modal-field { margin-bottom: 16px; }
+  .modal-field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .modal-field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 10px 12px;
+    outline: none;
+    letter-spacing: 2px;
+  }
+  .modal-field input:focus { border-color: var(--accent); }
+  .modal-field input.error { border-color: var(--error); }
+  .error-msg {
+    font-size: 10px;
+    color: var(--error);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 6px;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    justify-content: flex-end;
+  }
+  .btn-modal {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 9px 16px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .btn-modal:hover { background: var(--border); }
+  .btn-modal.confirm {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn-modal.confirm:hover { opacity: 0.85; }
+  .lock-icon {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
 </style>
 </head>
 <body>
@@ -187,27 +282,27 @@
   <div class="sub">Selecteer een overzicht</div>
 
   <nav class="nav">
-    <a href="Vakantieoverzicht_2026.html" class="nav-btn" style="--btn-accent:#4f6ef7">
+    <div class="nav-btn" style="--btn-accent:#4f6ef7" onclick="askPassword('Vakantieoverzicht_2026.html')">
       <div class="btn-label">
         <span class="btn-dot"></span>
         <div class="nav-btn-inner">
-          Vakantieoverzicht
+          Vakantieoverzicht <span class="lock-icon">&#128274;</span>
           <span class="btn-year">2026</span>
         </div>
       </div>
       <span class="btn-arrow">&#8594;</span>
-    </a>
+    </div>
 
-    <a href="Vakantieoverzicht_2027.html" class="nav-btn" style="--btn-accent:#8b5cf6">
+    <div class="nav-btn" style="--btn-accent:#8b5cf6" onclick="askPassword('Vakantieoverzicht_2027.html')">
       <div class="btn-label">
         <span class="btn-dot"></span>
         <div class="nav-btn-inner">
-          Vakantieoverzicht
+          Vakantieoverzicht <span class="lock-icon">&#128274;</span>
           <span class="btn-year">2027</span>
         </div>
       </div>
       <span class="btn-arrow">&#8594;</span>
-    </a>
+    </div>
 
     <div class="divider"></div>
 
@@ -225,5 +320,69 @@
 
   <div class="footer">Ctrl+S om op te slaan &bull; ESC om af te melden</div>
 </div>
+
+<!-- Password modal -->
+<div class="modal-overlay" id="pwModal">
+  <div class="modal">
+    <h2>Toegang vereist</h2>
+    <div class="modal-sub">Vakantieoverzicht</div>
+    <div class="modal-field">
+      <label>Paswoord</label>
+      <input type="password" id="pwInput" placeholder="••••••••" autocomplete="off" onkeydown="handleKey(event)">
+      <div class="error-msg" id="pwError">Ongeldig paswoord</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal" onclick="closeModal()">Annuleren</button>
+      <button class="btn-modal confirm" onclick="checkPassword()">Bevestigen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const CORRECT_PASSWORD = 'papa1928';
+  let targetUrl = '';
+
+  function askPassword(url) {
+    targetUrl = url;
+    const modal = document.getElementById('pwModal');
+    const input = document.getElementById('pwInput');
+    const err = document.getElementById('pwError');
+    input.value = '';
+    input.classList.remove('error');
+    err.classList.remove('visible');
+    modal.classList.add('open');
+    setTimeout(() => input.focus(), 80);
+  }
+
+  function closeModal() {
+    document.getElementById('pwModal').classList.remove('open');
+    targetUrl = '';
+  }
+
+  function checkPassword() {
+    const input = document.getElementById('pwInput');
+    const err = document.getElementById('pwError');
+    if (input.value === CORRECT_PASSWORD) {
+      closeModal();
+      window.location.href = targetUrl;
+    } else {
+      input.classList.add('error');
+      err.classList.add('visible');
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter') checkPassword();
+    if (e.key === 'Escape') closeModal();
+    const input = document.getElementById('pwInput');
+    const err = document.getElementById('pwError');
+    if (input.classList.contains('error')) {
+      input.classList.remove('error');
+      err.classList.remove('visible');
+    }
+  }
+</script>
 </body>
 </html>
