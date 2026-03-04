@@ -284,26 +284,28 @@ function saveModal(){
   closeModal();buildCalendar();updateStatus();
   if(selectedPerson===editingPersonIdx)selectPerson(editingPersonIdx);
 }
-const FB_URL = 'https://familie-caels-default-rtdb.europe-west1.firebasedatabase.app/vakantie2027.json';
-
-function clearAll(){
-  if(!confirm('Alle vakantiedagen wissen?'))return;
-  for(let p=0;p<persons.length;p++)vacation[p]={};
-  buildCalendar();updateStatus();
-}
+const FB_BASE = 'https://familie-caels-default-rtdb.europe-west1.firebasedatabase.app/vakantie2027';
 
 async function saveState(btn){
+  if(selectedPerson === null){ alert('Meld je eerst aan als persoon.'); return; }
   btn = btn || document.querySelector('.btn.active');
   const orig = btn.textContent;
   btn.textContent = 'Opslaan...';
   btn.disabled = true;
   try {
-    const res = await fetch(FB_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({persons, vacation})
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const p = selectedPerson;
+    await Promise.all([
+      fetch(`${FB_BASE}/vacation/${p}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(vacation[p] || {})
+      }),
+      fetch(`${FB_BASE}/persons/${p}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(persons[p])
+      })
+    ]);
     btn.textContent = 'Opgeslagen!';
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
   } catch(e) {
@@ -316,13 +318,18 @@ async function saveState(btn){
 async function loadState(){
   try {
     document.getElementById('statusText').textContent = 'Gegevens laden...';
-    const res = await fetch(FB_URL);
+    const res = await fetch(`${FB_BASE}.json`);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const s = await res.json();
-    if (s && s.persons) persons = s.persons;
+    if (s && s.persons) {
+      for (let p = 0; p < persons.length; p++) {
+        if (s.persons[p]) persons[p] = s.persons[p];
+      }
+    }
     if (s && s.vacation) {
-      vacation = {};
-      for (let p = 0; p < persons.length; p++) vacation[p] = s.vacation[p] || {};
+      for (let p = 0; p < persons.length; p++) {
+        vacation[p] = s.vacation[p] || {};
+      }
     }
   } catch(e) {
     console.warn('Laden mislukt, standaarddata gebruikt.', e);
@@ -330,6 +337,12 @@ async function loadState(){
   buildCalendar();
   updateStatus();
   document.getElementById('statusText').textContent = 'Klik op je naam in de kalender om vakantiedagen in te vullen.';
+}
+
+function clearAll(){
+  if(!confirm('Alle vakantiedagen wissen?'))return;
+  for(let p=0;p<persons.length;p++)vacation[p]={};
+  buildCalendar();updateStatus();
 }
 
 function exportCSV(){

@@ -269,25 +269,29 @@ function saveModal(){
   closeModal();buildGrid();updateStatus();
   if(selectedPerson===editingPersonIdx)selectPerson(editingPersonIdx);
 }
-function clearAll(){
-  if(!confirm('Alle selecties wissen?'))return;
-  for(let p=0;p<persons.length;p++)selected[p]={};
-  buildGrid();updateStatus();
-}
-const FB_URL = 'https://familie-caels-default-rtdb.europe-west1.firebasedatabase.app/wasverdeling2026.json';
+const FB_BASE = 'https://familie-caels-default-rtdb.europe-west1.firebasedatabase.app/wasverdeling2026';
 
 async function saveState(btn){
+  if(selectedPerson === null){ alert('Meld je eerst aan als persoon.'); return; }
   btn = btn || document.querySelector('.btn.active');
   const orig = btn.textContent;
   btn.textContent = 'Opslaan...';
   btn.disabled = true;
   try {
-    const res = await fetch(FB_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({persons, selected})
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const p = selectedPerson;
+    // Save this person's selections and personal info separately
+    await Promise.all([
+      fetch(`${FB_BASE}/selected/${p}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selected[p] || {})
+      }),
+      fetch(`${FB_BASE}/persons/${p}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(persons[p])
+      })
+    ]);
     btn.textContent = 'Opgeslagen!';
     setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
   } catch(e) {
@@ -300,13 +304,18 @@ async function saveState(btn){
 async function loadState(){
   try {
     document.getElementById('statusText').textContent = 'Gegevens laden...';
-    const res = await fetch(FB_URL);
+    const res = await fetch(`${FB_BASE}.json`);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const s = await res.json();
-    if (s && s.persons) persons = s.persons;
+    if (s && s.persons) {
+      for (let p = 0; p < persons.length; p++) {
+        if (s.persons[p]) persons[p] = s.persons[p];
+      }
+    }
     if (s && s.selected) {
-      selected = {};
-      for (let p = 0; p < persons.length; p++) selected[p] = s.selected[p] || {};
+      for (let p = 0; p < persons.length; p++) {
+        selected[p] = s.selected[p] || {};
+      }
     }
   } catch(e) {
     console.warn('Laden mislukt, standaarddata gebruikt.', e);
@@ -314,6 +323,12 @@ async function loadState(){
   buildGrid();
   updateStatus();
   document.getElementById('statusText').textContent = 'Klik op je naam om maanden aan te duiden.';
+}
+
+function clearAll(){
+  if(!confirm('Alle selecties wissen?'))return;
+  for(let p=0;p<persons.length;p++)selected[p]={};
+  buildGrid();updateStatus();
 }
 
 document.addEventListener('keydown', e => {
