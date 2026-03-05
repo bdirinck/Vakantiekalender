@@ -1,369 +1,785 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Vakantieoverzicht 2027</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0f0f13; --surface: #17171e; --surface2: #1e1e28;
-    --border: #2a2a38; --text: #e8e8f0; --text-muted: #6b6b80;
-    --accent: #4f6ef7; --accent2: #8b5cf6;
-    --weekend: #25253a; --weekend-text: #5a5a78;
-    --holiday: #2d1f00; --holiday-accent: #f59e0b;
-    --vacation: #ff4466; --vacation-bg: #2d0011;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; padding: 20px 16px; }
-  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-  .title-block h1 { font-family: 'Syne', sans-serif; font-size: clamp(22px,5vw,52px); font-weight: 800; letter-spacing: -1px; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .title-block .sub { font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; }
-  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'DM Mono', monospace; font-size: 11px; padding: 8px 14px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all 0.15s; touch-action: manipulation; }
-  .btn:hover { background: var(--border); border-color: var(--accent); }
-  .btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn-danger { border-color: var(--vacation); color: var(--vacation); }
-  .btn-danger:hover { background: var(--vacation-bg); }
-  .legend { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); }
-  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
-  .legend-dot { width: 12px; height: 12px; flex-shrink: 0; }
-  .active-banner { display: none; align-items: center; gap: 10px; padding: 10px 16px; margin-bottom: 16px; border: 2px solid; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
-  .active-banner.visible { display: flex; }
-  .active-banner .banner-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .active-banner .banner-deselect { margin-left: auto; cursor: pointer; font-size: 10px; opacity: 0.7; padding: 4px 8px; border: 1px solid currentColor; touch-action: manipulation; }
-  .active-banner .banner-deselect:hover { opacity: 1; }
-  .calendar-wrapper { overflow-x: auto; border: 1px solid var(--border); background: var(--surface); -webkit-overflow-scrolling: touch; }
-  table { border-collapse: collapse; min-width: max-content; }
-  .month-header th { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 10px 0; text-align: center; background: var(--surface2); border-right: 2px solid var(--border); border-bottom: 1px solid var(--border); color: var(--text-muted); position: sticky; top: 0; z-index: 10; }
-  .month-header th.name-col { width: 120px; min-width: 120px; background: var(--bg); border-right: 2px solid var(--border); color: var(--text-muted); font-size: 10px; letter-spacing: 3px; left: 0; z-index: 20; }
-  .day-num-row th, .day-name-row th { font-size: 9px; text-align: center; padding: 3px 0; width: 22px; min-width: 22px; background: var(--surface2); border-right: 1px solid var(--border); color: var(--text-muted); position: sticky; top: 0; z-index: 10; }
-  .day-num-row th.name-col, .day-name-row th.name-col { background: var(--bg); left: 0; z-index: 20; border-right: 2px solid var(--border); }
-  .day-num-row th.is-weekend, .day-name-row th.is-weekend { color: var(--weekend-text); background: var(--weekend); }
-  .day-num-row th.is-holiday, .day-name-row th.is-holiday { color: var(--holiday-accent); background: var(--holiday); }
-  .person-row td { width: 22px; min-width: 22px; height: 30px; text-align: center; vertical-align: middle; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); cursor: default; font-size: 9px; transition: background 0.08s; user-select: none; }
-  .person-row td.name-cell { font-size: 11px; font-weight: 500; padding: 0 10px; text-align: left; border-right: 2px solid var(--border); white-space: nowrap; position: sticky; left: 0; z-index: 5; background: var(--surface); min-width: 120px; width: 120px; cursor: pointer; touch-action: manipulation; }
-  .person-row td.name-cell:hover { background: var(--surface2); }
-  .person-row td.name-cell.is-active-person { cursor: default; }
-  .person-row td.name-cell.is-active-person:hover { background: var(--surface); }
-  .person-row td.is-weekend { background: var(--weekend); }
-  .person-row td.is-holiday { background: var(--holiday); }
-  .person-row td.is-vacation { background: var(--person-vacation-bg, var(--vacation-bg)) !important; }
-  .person-row td.is-vacation::after { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--person-color, var(--vacation)); margin: 0 auto; box-shadow: 0 0 6px var(--person-color, var(--vacation)); }
-  .person-row td.is-editable { cursor: pointer; }
-  .person-row td.is-editable:hover { background: rgba(79,110,247,0.15); }
-  .person-row.is-locked { opacity: 0.4; }
-  .month-sep { border-right: 2px solid var(--border) !important; }
-  .name-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 7px; }
-  .status-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: var(--bg); border: 1px solid var(--border); border-top: none; font-size: 10px; color: var(--text-muted); letter-spacing: 1px; flex-wrap: wrap; gap: 8px; }
-  .vacation-counts { display: flex; gap: 12px; flex-wrap: wrap; }
-  .count-item { display: flex; align-items: center; gap: 6px; }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); padding: 28px; max-width: 400px; width: 100%; }
-  .modal h2 { font-family: 'Syne', sans-serif; font-size: 20px; margin-bottom: 20px; }
-  .modal-field { margin-bottom: 16px; }
-  .modal-field label { display: block; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-  .modal-field input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; padding: 10px 12px; outline: none; }
-  .modal-field input:focus { border-color: var(--accent); }
-  .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
-  .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
-  .swatch { width: 32px; height: 32px; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s; touch-action: manipulation; }
-  .swatch:hover { transform: scale(1.15); }
-  .swatch.selected { border-color: #fff; }
-  @media (max-width: 600px) {
-    body { padding: 10px 8px; }
-    .btn { font-size: 10px; padding: 7px 10px; }
-    .month-header th.name-col, .person-row td.name-cell { min-width: 86px; width: 86px; font-size: 10px; padding: 0 6px; }
-    .legend { gap: 10px; }
-    .legend-item { font-size: 9px; }
-    .active-banner { font-size: 11px; padding: 8px 12px; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vakantieoverzicht 2027</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --surface: #17171e;
+      --surface2: #1e1e28;
+      --border: #2a2a38;
+      --text: #e8e8f0;
+      --text-muted: #6b6b80;
+      --accent: #4f6ef7;
+      --accent2: #8b5cf6;
+      --weekend: #25253a;
+      --weekend-text: #5a5a78;
+      --holiday: #2d1f00;
+      --holiday-accent: #f59e0b;
+      --vacation: #ff4466;
+      --vacation-bg: #2d0011;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      padding: 20px 16px;
+    }
+
+    .header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .title-block h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(22px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .title-block .sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      padding: 8px 14px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.15s;
+      touch-action: manipulation;
+    }
+
+    .btn:hover {
+      background: var(--border);
+      border-color: var(--accent);
+    }
+
+    .btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-danger {
+      border-color: var(--vacation);
+      color: var(--vacation);
+    }
+
+    .btn-danger:hover {
+      background: var(--vacation-bg);
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    .active-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      border: 2px solid;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .active-banner.visible {
+      display: flex;
+    }
+
+    .active-banner .banner-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .active-banner .banner-deselect {
+      margin-left: auto;
+      cursor: pointer;
+      font-size: 10px;
+      opacity: 0.7;
+      padding: 4px 8px;
+      border: 1px solid currentColor;
+      touch-action: manipulation;
+    }
+
+    .active-banner .banner-deselect:hover {
+      opacity: 1;
+    }
+
+    .calendar-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      border-collapse: collapse;
+      min-width: max-content;
+    }
+
+    .month-header th {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 10px 0;
+      text-align: center;
+      background: var(--surface2);
+      border-right: 2px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .month-header th.name-col {
+      width: 120px;
+      min-width: 120px;
+      background: var(--bg);
+      border-right: 2px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      letter-spacing: 3px;
+      left: 0;
+      z-index: 20;
+    }
+
+    .day-num-row th,
+    .day-name-row th {
+      font-size: 9px;
+      text-align: center;
+      padding: 3px 0;
+      width: 22px;
+      min-width: 22px;
+      background: var(--surface2);
+      border-right: 1px solid var(--border);
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .day-num-row th.name-col,
+    .day-name-row th.name-col {
+      background: var(--bg);
+      left: 0;
+      z-index: 20;
+      border-right: 2px solid var(--border);
+    }
+
+    .day-num-row th.is-weekend,
+    .day-name-row th.is-weekend {
+      color: var(--weekend-text);
+      background: var(--weekend);
+    }
+
+    .day-num-row th.is-holiday,
+    .day-name-row th.is-holiday {
+      color: var(--holiday-accent);
+      background: var(--holiday);
+    }
+
+    .person-row td {
+      width: 22px;
+      min-width: 22px;
+      height: 30px;
+      text-align: center;
+      vertical-align: middle;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      cursor: default;
+      font-size: 9px;
+      transition: background 0.08s;
+      user-select: none;
+    }
+
+    .person-row td.name-cell {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 0 10px;
+      text-align: left;
+      border-right: 2px solid var(--border);
+      white-space: nowrap;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      background: var(--surface);
+      min-width: 120px;
+      width: 120px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .person-row td.name-cell:hover {
+      background: var(--surface2);
+    }
+
+    .person-row td.name-cell.is-active-person {
+      cursor: default;
+    }
+
+    .person-row td.name-cell.is-active-person:hover {
+      background: var(--surface);
+    }
+
+    .person-row td.is-weekend {
+      background: var(--weekend);
+    }
+
+    .person-row td.is-holiday {
+      background: var(--holiday);
+    }
+
+    .person-row td.is-vacation {
+      background: var(--person-vacation-bg, var(--vacation-bg)) !important;
+    }
+
+    .person-row td.is-vacation::after {
+      content: '';
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--person-color, var(--vacation));
+      margin: 0 auto;
+      box-shadow: 0 0 6px var(--person-color, var(--vacation));
+    }
+
+    .person-row td.is-editable {
+      cursor: pointer;
+    }
+
+    .person-row td.is-editable:hover {
+      background: rgba(79, 110, 247, 0.15);
+    }
+
+    .person-row.is-locked {
+      opacity: 0.4;
+    }
+
+    .month-sep {
+      border-right: 2px solid var(--border) !important;
+    }
+
+    .name-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 7px;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-top: none;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .vacation-counts {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .count-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 28px;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .modal h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .modal-field {
+      margin-bottom: 16px;
+    }
+
+    .modal-field label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .modal-field input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    .modal-field input:focus {
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      justify-content: flex-end;
+    }
+
+    .color-swatches {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .swatch {
+      width: 32px;
+      height: 32px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.1s;
+      touch-action: manipulation;
+    }
+
+    .swatch:hover {
+      transform: scale(1.15);
+    }
+
+    .swatch.selected {
+      border-color: #fff;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px 8px;
+      }
+
+      .btn {
+        font-size: 10px;
+        padding: 7px 10px;
+      }
+
+      .month-header th.name-col,
+      .person-row td.name-cell {
+        min-width: 86px;
+        width: 86px;
+        font-size: 10px;
+        padding: 0 6px;
+      }
+
+      .legend {
+        gap: 10px;
+      }
+
+      .legend-item {
+        font-size: 9px;
+      }
+
+      .active-banner {
+        font-size: 11px;
+        padding: 8px 12px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="header">
-  <div class="title-block">
-    <h1>VakantieOverzicht 2027</h1>
-    <div class="sub">Overzicht &bull; 6 personen &bull; 365 dagen</div>
-  </div>
-  <div class="controls">
-    <a href="index.html" class="btn" style="text-decoration:none">&#8592; Home</a>
-    <button class="btn btn-danger" onclick="clearAll()">Alles wissen</button>
-    <button class="btn" onclick="exportCSV()">Exporteer CSV</button>
-    <button class="btn active" onclick="saveState(this)">Opslaan</button>
-  </div>
-</div>
-<div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:var(--holiday-accent);border-radius:2px"></div>Belgische feestdag</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#2a2a38;border-radius:2px"></div>Weekend</div>
-  <div class="legend-item" style="margin-left:auto;color:var(--text-muted)">Klik op je naam om te bewerken</div>
-</div>
-<div class="active-banner" id="activeBanner">
-  <span class="banner-dot" id="bannerDot"></span>
-  <span id="bannerName"></span>
-  <span class="banner-deselect" onclick="deselectPerson()">&#x2715; Afmelden</span>
-</div>
-<div class="calendar-wrapper"><table id="calTable"></table></div>
-<div class="status-bar">
-  <div id="statusText">Klik op je naam in de kalender om vakantiedagen in te vullen.</div>
-  <div class="vacation-counts" id="vacationCounts"></div>
-</div>
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <h2>Persoon aanpassen</h2>
-    <div class="modal-field"><label>Naam</label><input type="text" id="modalName" maxlength="24"></div>
-    <div class="modal-field"><label>Kleur</label><div class="color-swatches" id="colorSwatches"></div></div>
-    <div class="modal-actions">
-      <button class="btn btn-danger" onclick="closeModal()">Annuleren</button>
-      <button class="btn active" onclick="saveModal()">Opslaan</button>
+  <div class="header">
+    <div class="title-block">
+      <h1>VakantieOverzicht 2027</h1>
+      <div class="sub">Overzicht &bull; 6 personen &bull; 365 dagen</div>
+    </div>
+    <div class="controls">
+      <a href="index.html" class="btn" style="text-decoration:none">&#8592; Home</a>
+      <button class="btn btn-danger" onclick="clearAll()">Alles wissen</button>
+      <button class="btn" onclick="exportCSV()">Exporteer CSV</button>
+      <button class="btn active" onclick="saveState(this)">Opslaan</button>
     </div>
   </div>
-</div>
-<script>
-const PERSON_COLORS=['#4f6ef7','#10b981','#f59e0b','#ec4899','#8b5cf6','#06b6d4','#f97316','#84cc16','#e11d48','#0ea5e9'];
-const HOLIDAYS=new Set(['2027-01-01','2027-03-29','2027-05-01','2027-05-06','2027-05-17','2027-07-21','2027-08-15','2027-11-01','2027-11-11','2027-12-25']);
-const HOLIDAY_NAMES={'2027-01-01':'Nieuwjaar','2027-03-29':'Paasmaandag','2027-05-01':'Dag van de Arbeid','2027-05-06':'OLH Hemelvaart','2027-05-17':'Pinkstermaandag','2027-07-21':'Nationale feestdag','2027-08-15':'OLV Hemelvaart','2027-11-01':'Allerheiligen','2027-11-11':'Wapenstilstand','2027-12-25':'Kerstmis'};
-const MONTHS=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
-const DAYS=['Ma','Di','Wo','Do','Vr','Za','Zo'];
-let persons=[
-  {name:'Marie-Jeanne',color:PERSON_COLORS[0]},
-  {name:'Liliane',color:PERSON_COLORS[1]},
-  {name:'Patricia',color:'#f97316'},
-  {name:'Luc',color:PERSON_COLORS[3]},
-  {name:'Rony',color:PERSON_COLORS[4]},
-  {name:'Kristl',color:'#84cc16'}
-];
-let vacation={};for(let i=0;i<6;i++)vacation[i]={};
-let selectedPerson=null;
-let isDragging=false,dragMode=null,editingPersonIdx=null,pendingColor=null;
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--holiday-accent);border-radius:2px"></div>Belgische feestdag
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#2a2a38;border-radius:2px"></div>Weekend
+    </div>
+    <div class="legend-item" style="margin-left:auto;color:var(--text-muted)">Klik op je naam om te bewerken</div>
+  </div>
+  <div class="active-banner" id="activeBanner">
+    <span class="banner-dot" id="bannerDot"></span>
+    <span id="bannerName"></span>
+    <span class="banner-deselect" onclick="deselectPerson()">&#x2715; Afmelden</span>
+  </div>
+  <div class="calendar-wrapper">
+    <table id="calTable"></table>
+  </div>
+  <div class="status-bar">
+    <div id="statusText">Klik op je naam in de kalender om vakantiedagen in te vullen.</div>
+    <div class="vacation-counts" id="vacationCounts"></div>
+  </div>
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2>Persoon aanpassen</h2>
+      <div class="modal-field"><label>Naam</label><input type="text" id="modalName" maxlength="24"></div>
+      <div class="modal-field"><label>Kleur</label>
+        <div class="color-swatches" id="colorSwatches"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-danger" onclick="closeModal()">Annuleren</button>
+        <button class="btn active" onclick="saveModal()">Opslaan</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const PERSON_COLORS = ['#4f6ef7', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#f97316', '#84cc16', '#e11d48', '#0ea5e9'];
+    const HOLIDAYS = new Set(['2027-01-01', '2027-03-29', '2027-05-01', '2027-05-06', '2027-05-17', '2027-07-21', '2027-08-15', '2027-11-01', '2027-11-11', '2027-12-25']);
+    const HOLIDAY_NAMES = { '2027-01-01': 'Nieuwjaar', '2027-03-29': 'Paasmaandag', '2027-05-01': 'Dag van de Arbeid', '2027-05-06': 'OLH Hemelvaart', '2027-05-17': 'Pinkstermaandag', '2027-07-21': 'Nationale feestdag', '2027-08-15': 'OLV Hemelvaart', '2027-11-01': 'Allerheiligen', '2027-11-11': 'Wapenstilstand', '2027-12-25': 'Kerstmis' };
+    const MONTHS = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+    const DAYS = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+    let persons = [
+      { name: 'Marie-Jeanne', color: PERSON_COLORS[0] },
+      { name: 'Liliane', color: PERSON_COLORS[1] },
+      { name: 'Patricia', color: '#f97316' },
+      { name: 'Luc', color: PERSON_COLORS[3] },
+      { name: 'Rony', color: PERSON_COLORS[4] },
+      { name: 'Kristl', color: '#84cc16' }
+    ];
+    let vacation = {}; for (let i = 0; i < 6; i++)vacation[i] = {};
+    let selectedPerson = null;
+    let isDragging = false, dragMode = null, editingPersonIdx = null, pendingColor = null;
 
-function getAllDates(){const d=[];for(let m=0;m<12;m++){const dim=new Date(2027,m+1,0).getDate();for(let day=1;day<=dim;day++)d.push(new Date(2027,m,day));}return d;}
-function ds(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function isWeekend(d){const w=d.getDay();return w===0||w===6;}
-function isHoliday(d){return HOLIDAYS.has(ds(d));}
+    function getAllDates() { const d = []; for (let m = 0; m < 12; m++) { const dim = new Date(2027, m + 1, 0).getDate(); for (let day = 1; day <= dim; day++)d.push(new Date(2027, m, day)); } return d; }
+    function ds(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function isWeekend(d) { const w = d.getDay(); return w === 0 || w === 6; }
+    function isHoliday(d) { return HOLIDAYS.has(ds(d)); }
 
-function buildCalendar(){
-  const table=document.getElementById('calTable');table.innerHTML='';
-  const dates=getAllDates();
-  const months={};for(const d of dates){const m=d.getMonth();if(!months[m])months[m]=[];months[m].push(d);}
-  // Month header row
-  const mRow=document.createElement('tr');mRow.className='month-header';
-  let th=document.createElement('th');th.className='name-col';th.textContent='NAAM';mRow.appendChild(th);
-  for(let m=0;m<12;m++){th=document.createElement('th');th.colSpan=months[m].length;th.textContent=MONTHS[m].toUpperCase();mRow.appendChild(th);}
-  table.appendChild(mRow);
-  function makeHeaderRow(cls,valFn){
-    const row=document.createElement('tr');row.className=cls;
-    const nt=document.createElement('th');nt.className='name-col';row.appendChild(nt);
-    for(const d of dates){
-      const t=document.createElement('th');t.textContent=valFn(d);
-      if(isHoliday(d)){t.classList.add('is-holiday');t.title=HOLIDAY_NAMES[ds(d)]||'Feestdag';}
-      else if(isWeekend(d))t.classList.add('is-weekend');
-      const nx=new Date(d);nx.setDate(nx.getDate()+1);
-      if(nx.getMonth()!==d.getMonth())t.classList.add('month-sep');
-      row.appendChild(t);
-    }
-    table.appendChild(row);
-  }
-  makeHeaderRow('day-num-row',d=>d.getDate());
-  makeHeaderRow('day-name-row',d=>DAYS[(d.getDay()+6)%7]);
+    function buildCalendar() {
+      const table = document.getElementById('calTable'); table.innerHTML = '';
+      const dates = getAllDates();
+      const months = {}; for (const d of dates) { const m = d.getMonth(); if (!months[m]) months[m] = []; months[m].push(d); }
+      // Month header row
+      const mRow = document.createElement('tr'); mRow.className = 'month-header';
+      let th = document.createElement('th'); th.className = 'name-col'; th.textContent = 'NAAM'; mRow.appendChild(th);
+      for (let m = 0; m < 12; m++) { th = document.createElement('th'); th.colSpan = months[m].length; th.textContent = MONTHS[m].toUpperCase(); mRow.appendChild(th); }
+      table.appendChild(mRow);
+      function makeHeaderRow(cls, valFn) {
+        const row = document.createElement('tr'); row.className = cls;
+        const nt = document.createElement('th'); nt.className = 'name-col'; row.appendChild(nt);
+        for (const d of dates) {
+          const t = document.createElement('th'); t.textContent = valFn(d);
+          if (isHoliday(d)) { t.classList.add('is-holiday'); t.title = HOLIDAY_NAMES[ds(d)] || 'Feestdag'; }
+          else if (isWeekend(d)) t.classList.add('is-weekend');
+          const nx = new Date(d); nx.setDate(nx.getDate() + 1);
+          if (nx.getMonth() !== d.getMonth()) t.classList.add('month-sep');
+          row.appendChild(t);
+        }
+        table.appendChild(row);
+      }
+      makeHeaderRow('day-num-row', d => d.getDate());
+      makeHeaderRow('day-name-row', d => DAYS[(d.getDay() + 6) % 7]);
 
-  for(let p=0;p<persons.length;p++){
-    const tr=document.createElement('tr');tr.className='person-row';
-    const col=persons[p].color;
-    tr.style.setProperty('--person-color',col);
-    tr.style.setProperty('--person-vacation-bg',col+'22');
-    const isActive=selectedPerson===p;
-    const isLocked=selectedPerson!==null&&!isActive;
-    if(isLocked)tr.classList.add('is-locked');
+      for (let p = 0; p < persons.length; p++) {
+        const tr = document.createElement('tr'); tr.className = 'person-row';
+        const col = persons[p].color;
+        tr.style.setProperty('--person-color', col);
+        tr.style.setProperty('--person-vacation-bg', col + '22');
+        const isActive = selectedPerson === p;
+        const isLocked = selectedPerson !== null && !isActive;
+        if (isLocked) tr.classList.add('is-locked');
 
-    // Name cell
-    const nc=document.createElement('td');
-    nc.className='name-cell'+(isActive?' is-active-person':'');
-    nc.style.color=isActive?col:'';
-    nc.style.borderLeft='3px solid '+(isActive?col:'transparent');
-    if(isActive){
-      nc.innerHTML='<span class="name-dot" style="background:'+col+'"></span>'+persons[p].name
-        +'<span style="color:var(--text-muted);font-size:10px;cursor:pointer;margin-left:6px;float:right" title="Bewerken" id="editBtn'+p+'">&#x270E;</span>';
-      nc.querySelector('#editBtn'+p).addEventListener('click',e=>{e.stopPropagation();openModal(p);});
-      nc.querySelector('#editBtn'+p).addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();openModal(p);});
-    } else {
-      nc.innerHTML='<span class="name-dot" style="background:'+col+'"></span>'+persons[p].name;
-      nc.title='Klik om als '+persons[p].name+' in te loggen';
-      nc.addEventListener('click',()=>selectPerson(p));
-      nc.addEventListener('touchend',e=>{e.preventDefault();selectPerson(p);});
-    }
-    tr.appendChild(nc);
+        // Name cell
+        const nc = document.createElement('td');
+        nc.className = 'name-cell' + (isActive ? ' is-active-person' : '');
+        nc.style.color = isActive ? col : '';
+        nc.style.borderLeft = '3px solid ' + (isActive ? col : 'transparent');
+        if (isActive) {
+          nc.innerHTML = '<span class="name-dot" style="background:' + col + '"></span>' + persons[p].name
+            + '<span style="color:var(--text-muted);font-size:10px;cursor:pointer;margin-left:6px;float:right" title="Bewerken" id="editBtn' + p + '">&#x270E;</span>';
+          nc.querySelector('#editBtn' + p).addEventListener('click', e => { e.stopPropagation(); openModal(p); });
+          nc.querySelector('#editBtn' + p).addEventListener('touchend', e => { e.preventDefault(); e.stopPropagation(); openModal(p); });
+        } else {
+          nc.innerHTML = '<span class="name-dot" style="background:' + col + '"></span>' + persons[p].name;
+          nc.title = 'Klik om als ' + persons[p].name + ' in te loggen';
+          nc.addEventListener('click', () => selectPerson(p));
+          nc.addEventListener('touchend', e => { e.preventDefault(); selectPerson(p); });
+        }
+        tr.appendChild(nc);
 
-    // Day cells
-    for(const d of dates){
-      const td=document.createElement('td');const dstr=ds(d);
-      td.dataset.dstr=dstr;td.dataset.p=p;
-      const nx=new Date(d);nx.setDate(nx.getDate()+1);
-      if(nx.getMonth()!==d.getMonth())td.classList.add('month-sep');
-      if(isHoliday(d)){td.classList.add('is-holiday');td.title=HOLIDAY_NAMES[dstr]||'Feestdag';}
-      else if(isWeekend(d)){td.classList.add('is-weekend');}
-      else{td.classList.add('is-workday');}
-      if(vacation[p][dstr])td.classList.add('is-vacation');
-      if(isActive){
-        td.classList.add('is-editable');
-        td.addEventListener('mousedown',e=>{e.preventDefault();isDragging=true;dragMode=vacation[p][dstr]?'remove':'add';toggle(p,dstr,td);});
-        td.addEventListener('mouseenter',()=>{if(isDragging)toggle(p,dstr,td);});
-        td.addEventListener('touchstart',e=>{e.preventDefault();isDragging=true;dragMode=vacation[p][dstr]?'remove':'add';toggle(p,dstr,td);},{passive:false});
-        td.addEventListener('touchmove',e=>{
-          e.preventDefault();
-          const touch=e.touches[0];
-          const el=document.elementFromPoint(touch.clientX,touch.clientY);
-          if(el&&el.classList.contains('is-editable')&&el.dataset.dstr){
-            toggle(p,el.dataset.dstr,el);
+        // Day cells
+        for (const d of dates) {
+          const td = document.createElement('td'); const dstr = ds(d);
+          td.dataset.dstr = dstr; td.dataset.p = p;
+          const nx = new Date(d); nx.setDate(nx.getDate() + 1);
+          if (nx.getMonth() !== d.getMonth()) td.classList.add('month-sep');
+          if (isHoliday(d)) { td.classList.add('is-holiday'); td.title = HOLIDAY_NAMES[dstr] || 'Feestdag'; }
+          else if (isWeekend(d)) { td.classList.add('is-weekend'); }
+          else { td.classList.add('is-workday'); }
+          if (vacation[p][dstr]) td.classList.add('is-vacation');
+          if (isActive) {
+            td.classList.add('is-editable');
+            td.addEventListener('mousedown', e => { e.preventDefault(); isDragging = true; dragMode = vacation[p][dstr] ? 'remove' : 'add'; toggle(p, dstr, td); });
+            td.addEventListener('mouseenter', () => { if (isDragging) toggle(p, dstr, td); });
+            td.addEventListener('touchstart', e => { e.preventDefault(); isDragging = true; dragMode = vacation[p][dstr] ? 'remove' : 'add'; toggle(p, dstr, td); }, { passive: false });
+            td.addEventListener('touchmove', e => {
+              e.preventDefault();
+              const touch = e.touches[0];
+              const el = document.elementFromPoint(touch.clientX, touch.clientY);
+              if (el && el.classList.contains('is-editable') && el.dataset.dstr) {
+                toggle(p, el.dataset.dstr, el);
+              }
+            }, { passive: false });
           }
-        },{passive:false});
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
       }
-      tr.appendChild(td);
+      document.addEventListener('mouseup', () => { isDragging = false; dragMode = null; }, { once: false });
+      document.addEventListener('touchend', () => { isDragging = false; dragMode = null; }, { once: false });
     }
-    table.appendChild(tr);
-  }
-  document.addEventListener('mouseup',()=>{isDragging=false;dragMode=null;},{once:false});
-  document.addEventListener('touchend',()=>{isDragging=false;dragMode=null;},{once:false});
-}
 
-function toggle(p,dstr,td){
-  if(dragMode==='add'){vacation[p][dstr]=true;td.classList.add('is-vacation');}
-  else{delete vacation[p][dstr];td.classList.remove('is-vacation');}
-  updateStatus();
-}
+    function toggle(p, dstr, td) {
+      if (dragMode === 'add') { vacation[p][dstr] = true; td.classList.add('is-vacation'); }
+      else { delete vacation[p][dstr]; td.classList.remove('is-vacation'); }
+      updateStatus();
+    }
 
-function selectPerson(idx){
-  selectedPerson=idx;
-  buildCalendar();updateStatus();
-  const banner=document.getElementById('activeBanner');
-  banner.classList.add('visible');
-  banner.style.borderColor=persons[idx].color;
-  banner.style.color=persons[idx].color;
-  document.getElementById('bannerDot').style.background=persons[idx].color;
-  document.getElementById('bannerName').textContent=persons[idx].name+' — klik of sleep op werkdagen';
-  document.getElementById('statusText').textContent='Actief: '+persons[idx].name+'. Klik of sleep op werkdagen om vakantie aan te duiden.';
-}
+    function selectPerson(idx) {
+      selectedPerson = idx;
+      buildCalendar(); updateStatus();
+      const banner = document.getElementById('activeBanner');
+      banner.classList.add('visible');
+      banner.style.borderColor = persons[idx].color;
+      banner.style.color = persons[idx].color;
+      document.getElementById('bannerDot').style.background = persons[idx].color;
+      document.getElementById('bannerName').textContent = persons[idx].name + ' — klik of sleep op werkdagen';
+      document.getElementById('statusText').textContent = 'Actief: ' + persons[idx].name + '. Klik of sleep op werkdagen om vakantie aan te duiden.';
+    }
 
-function deselectPerson(){
-  selectedPerson=null;
-  buildCalendar();updateStatus();
-  document.getElementById('activeBanner').classList.remove('visible');
-  document.getElementById('statusText').textContent='Klik op je naam in de kalender om vakantiedagen in te vullen.';
-}
+    function deselectPerson() {
+      selectedPerson = null;
+      buildCalendar(); updateStatus();
+      document.getElementById('activeBanner').classList.remove('visible');
+      document.getElementById('statusText').textContent = 'Klik op je naam in de kalender om vakantiedagen in te vullen.';
+    }
 
-function updateStatus(){
-  const c=document.getElementById('vacationCounts');c.innerHTML='';
-  for(let p=0;p<persons.length;p++){
-    const days=Object.keys(vacation[p]).length;
-    const div=document.createElement('div');div.className='count-item';
-    div.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+persons[p].color+';margin-right:4px"></span>'
-      +'<span style="color:'+persons[p].color+'">'+persons[p].name+'</span>: '+days+'d';
-    c.appendChild(div);
-  }
-}
-
-function openModal(idx){
-  editingPersonIdx=idx;pendingColor=persons[idx].color;
-  document.getElementById('modalName').value=persons[idx].name;
-  const sw=document.getElementById('colorSwatches');sw.innerHTML='';
-  PERSON_COLORS.forEach(c=>{
-    const s=document.createElement('div');s.className='swatch'+(c===pendingColor?' selected':'');
-    s.style.background=c;
-    s.onclick=()=>{pendingColor=c;document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('selected'));s.classList.add('selected');};
-    sw.appendChild(s);
-  });
-  document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('modalName').focus(),50);
-}
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open');editingPersonIdx=null;}
-function saveModal(){
-  if(editingPersonIdx===null)return;
-  const n=document.getElementById('modalName').value.trim()||persons[editingPersonIdx].name;
-  persons[editingPersonIdx].name=n;persons[editingPersonIdx].color=pendingColor;
-  closeModal();buildCalendar();updateStatus();
-  if(selectedPerson===editingPersonIdx)selectPerson(editingPersonIdx);
-}
-const FB_BASE = 'https://familie-caels-default-rtdb.europe-west1.firebasedatabase.app/vakantie2027';
-
-async function saveState(btn){
-  if(selectedPerson === null){ alert('Meld je eerst aan als persoon.'); return; }
-  btn = btn || document.querySelector('.btn.active');
-  const orig = btn.textContent;
-  btn.textContent = 'Opslaan...';
-  btn.disabled = true;
-  try {
-    const p = selectedPerson;
-    await Promise.all([
-      fetch(`${FB_BASE}/vacation/${p}.json`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(vacation[p] || {})
-      }),
-      fetch(`${FB_BASE}/persons/${p}.json`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(persons[p])
-      })
-    ]);
-    btn.textContent = 'Opgeslagen!';
-    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
-  } catch(e) {
-    btn.textContent = 'Fout!';
-    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
-    alert('Opslaan mislukt: ' + e.message);
-  }
-}
-
-async function loadState(){
-  try {
-    document.getElementById('statusText').textContent = 'Gegevens laden...';
-    const res = await fetch(`${FB_BASE}.json`);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const s = await res.json();
-    if (s && s.persons) {
+    function updateStatus() {
+      const c = document.getElementById('vacationCounts'); c.innerHTML = '';
       for (let p = 0; p < persons.length; p++) {
-        if (s.persons[p]) persons[p] = s.persons[p];
+        const days = Object.keys(vacation[p]).length;
+        const div = document.createElement('div'); div.className = 'count-item';
+        div.innerHTML = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + persons[p].color + ';margin-right:4px"></span>'
+          + '<span style="color:' + persons[p].color + '">' + persons[p].name + '</span>: ' + days + 'd';
+        c.appendChild(div);
       }
     }
-    if (s && s.vacation) {
-      for (let p = 0; p < persons.length; p++) {
-        vacation[p] = s.vacation[p] || {};
+
+    function openModal(idx) {
+      editingPersonIdx = idx; pendingColor = persons[idx].color;
+      document.getElementById('modalName').value = persons[idx].name;
+      const sw = document.getElementById('colorSwatches'); sw.innerHTML = '';
+      PERSON_COLORS.forEach(c => {
+        const s = document.createElement('div'); s.className = 'swatch' + (c === pendingColor ? ' selected' : '');
+        s.style.background = c;
+        s.onclick = () => { pendingColor = c; document.querySelectorAll('.swatch').forEach(x => x.classList.remove('selected')); s.classList.add('selected'); };
+        sw.appendChild(s);
+      });
+      document.getElementById('modalOverlay').classList.add('open');
+      setTimeout(() => document.getElementById('modalName').focus(), 50);
+    }
+    function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editingPersonIdx = null; }
+    function saveModal() {
+      if (editingPersonIdx === null) return;
+      const n = document.getElementById('modalName').value.trim() || persons[editingPersonIdx].name;
+      persons[editingPersonIdx].name = n; persons[editingPersonIdx].color = pendingColor;
+      closeModal(); buildCalendar(); updateStatus();
+      if (selectedPerson === editingPersonIdx) selectPerson(editingPersonIdx);
+    }
+    const FB_BASE = 'https://familie-caels-default-rtdb.europe-west1.firebasedatabase.app/vakantie2027';
+
+    async function saveState(btn) {
+      if (selectedPerson === null) { alert('Meld je eerst aan als persoon.'); return; }
+      btn = btn || document.querySelector('.btn.active');
+      const orig = btn.textContent;
+      btn.textContent = 'Opslaan...';
+      btn.disabled = true;
+      try {
+        const p = selectedPerson;
+        await Promise.all([
+          fetch(`${FB_BASE}/vacation/${p}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(vacation[p] || {})
+          }),
+          fetch(`${FB_BASE}/persons/${p}.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(persons[p])
+          })
+        ]);
+        btn.textContent = 'Opgeslagen!';
+        setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+      } catch (e) {
+        btn.textContent = 'Fout!';
+        setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+        alert('Opslaan mislukt: ' + e.message);
       }
     }
-  } catch(e) {
-    console.warn('Laden mislukt, standaarddata gebruikt.', e);
-  }
-  buildCalendar();
-  updateStatus();
-  document.getElementById('statusText').textContent = 'Klik op je naam in de kalender om vakantiedagen in te vullen.';
-}
 
-function clearAll(){
-  if(!confirm('Alle vakantiedagen wissen?'))return;
-  for(let p=0;p<persons.length;p++)vacation[p]={};
-  buildCalendar();updateStatus();
-}
+    async function loadState() {
+      try {
+        document.getElementById('statusText').textContent = 'Gegevens laden...';
+        const res = await fetch(`${FB_BASE}.json`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const s = await res.json();
+        if (s && s.persons) {
+          for (let p = 0; p < persons.length; p++) {
+            if (s.persons[p]) persons[p] = s.persons[p];
+          }
+        }
+        if (s && s.vacation) {
+          for (let p = 0; p < persons.length; p++) {
+            vacation[p] = s.vacation[p] || {};
+          }
+        }
+      } catch (e) {
+        console.warn('Laden mislukt, standaarddata gebruikt.', e);
+      }
+      buildCalendar();
+      updateStatus();
+      document.getElementById('statusText').textContent = 'Klik op je naam in de kalender om vakantiedagen in te vullen.';
+    }
 
-function exportCSV(){
-  const dates=getAllDates().filter(d=>!isWeekend(d)&&!isHoliday(d));
-  let csv='Naam,'+dates.map(d=>ds(d)).join(',')+'\n';
-  for(let p=0;p<persons.length;p++){csv+=persons[p].name+','+dates.map(d=>vacation[p][ds(d)]?'V':'').join(',')+'\n';}
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='vakantieoverzicht_2027.csv';a.click();
-}
+    function clearAll() {
+      if (selectedPerson === null) { alert('Meld je eerst aan als persoon.'); return; }
+      if (!confirm('Alle vakantiedagen wissen voor ' + persons[selectedPerson].name + '?')) return;
+      vacation[selectedPerson] = {};
+      buildCalendar(); updateStatus();
+    }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    if (document.getElementById('modalOverlay').classList.contains('open')) closeModal();
-    else deselectPerson();
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-    e.preventDefault();
-    saveState(document.querySelector('.btn.active'));
-  }
-});
-loadState();
-</script>
+    function exportCSV() {
+      const dates = getAllDates().filter(d => !isWeekend(d) && !isHoliday(d));
+      let csv = 'Naam,' + dates.map(d => ds(d)).join(',') + '\n';
+      for (let p = 0; p < persons.length; p++) { csv += persons[p].name + ',' + dates.map(d => vacation[p][ds(d)] ? 'V' : '').join(',') + '\n'; }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = 'vakantieoverzicht_2027.csv'; a.click();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (document.getElementById('modalOverlay').classList.contains('open')) closeModal();
+        else deselectPerson();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveState(document.querySelector('.btn.active'));
+      }
+    });
+    loadState();
+  </script>
 </body>
+
 </html>
